@@ -14,9 +14,12 @@ import {
   Text,
   View
 } from 'react-native';
+import { credentials } from './config';
+import base64 from 'base-64';
 
-var API_URL = 'https://mychannels-api-preview.herokuapp.com/v1/productions'
-//'https://facebook.github.io/react-native/movies.json'
+var API_URL = 'https://mychannels-api-preview.herokuapp.com/v1/playlists/516'
+var headers = new Headers();
+headers.append('Authorization', 'Basic ' + base64.encode(`${credentials.user}:${credentials.password}`));
 
 export default class react_native_theoplayer extends Component {
 
@@ -28,21 +31,23 @@ export default class react_native_theoplayer extends Component {
   }
 
   componentDidMount() {
-    return fetch(API_URL)
-      .then((response) => response.json())
-      .then((responseJson) => {
-        let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-        this.setState({
-          isLoading: false,
-          dataSource: ds.cloneWithRows(responseJson.production),
-        }, function() {
-          // do something with new state
-        });
-      })
-      .catch((error) => {
-        console.error(error);
+    fetch(API_URL, {
+      method: 'GET',
+      headers: headers 
+    })
+    .then((response) => response.json())
+    .then((responseJson) => { 
+      let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+      this.setState({
+        isLoading: false,
+        dataSource: ds.cloneWithRows(responseJson.productions),
+      }, function() {
       });
-  }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
 
   render() {
     if (this.state.isLoading) {
@@ -57,7 +62,7 @@ export default class react_native_theoplayer extends Component {
       <View style={{flex: 1, paddingTop: 20}}>
         <ListView
           dataSource={this.state.dataSource}
-          renderRow={(rowData) => <Text>{rowData.id},{rowData.releaseYear}</Text>}
+          renderRow={(rowData) => <Image source = {{uri : rowData.video['screenshot_urls']['original']}} style ={{width: 100, height:100}}/> }
         />
       </View>
     );
